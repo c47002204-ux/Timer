@@ -1,1 +1,1637 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Обратный отсчёт до Зимы, Нового года и Своего события</title>
+  <style>
+    :root {
+      --bg-top: #060b19;
+      --bg-mid: #0c1833;
+      --bg-bot: #13254a;
+      --glass: rgba(16, 29, 58, 0.65);
+      --glass-border: rgba(148, 197, 255, 0.22);
+      --text-main: #f3f7ff;
+      --text-muted: #9eb5d9;
+      --winter-accent: #38bdf8;
+      --winter-glow: rgba(56, 189, 248, 0.35);
+      --ny-accent: #fbbf24;
+      --ny-glow: rgba(251, 191, 36, 0.35);
+      --custom-accent: #a855f7;
+      --custom-glow: rgba(168, 85, 247, 0.38);
+      --danger: #f43f5e;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      color: var(--text-main);
+      background: radial-gradient(circle at 50% 0%, var(--bg-bot), var(--bg-mid) 48%, var(--bg-top) 100%);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 14px 96px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #fxCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding-top: 6px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill.sim-active {
+      border-color: rgba(251, 191, 36, 0.55);
+      background: rgba(251, 191, 36, 0.14);
+      color: #fde68a;
+    }
+
+    h1 {
+      font-size: clamp(1.65rem, 4vw, 2.7rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(120deg, #ffffff 8%, #bae6fd 48%, #fde68a 75%, #e9d5ff 96%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: clamp(0.9rem, 2vw, 1.02rem);
+      max-width: 620px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      padding: 10px 15px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.26), rgba(99, 102, 241, 0.28));
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+
+    .btn-primary.active-toggle {
+      background: rgba(244, 63, 94, 0.25);
+      border-color: rgba(244, 63, 94, 0.65);
+      color: #fecdd3;
+    }
+
+    .btn-purple {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(99, 102, 241, 0.3));
+      border-color: rgba(168, 85, 247, 0.55);
+      color: #f3e8ff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(305px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 22px 20px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    }
+
+    .card.winter {
+      --accent-color: var(--winter-accent);
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45), 0 0 36px -14px var(--winter-glow);
+    }
+
+    .card.newyear {
+      --accent-color: var(--ny-accent);
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45), 0 0 36px -14px var(--ny-glow);
+    }
+
+    .card.custom {
+      --accent-color: var(--custom-accent);
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45), 0 0 36px -14px var(--custom-glow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      word-break: break-word;
+    }
+
+    .card-target {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .season-status {
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+
+    .timer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+    }
+
+    .time-box {
+      background: rgba(6, 12, 28, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 13px 6px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .time-val {
+      font-size: clamp(1.45rem, 3.6vw, 2.2rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      color: #ffffff;
+    }
+
+    .card.winter .time-val { text-shadow: 0 0 18px rgba(56, 189, 248, 0.35); }
+    .card.newyear .time-val { text-shadow: 0 0 18px rgba(251, 191, 36, 0.35); }
+    .card.custom .time-val { text-shadow: 0 0 18px rgba(168, 85, 247, 0.4); }
+
+    .time-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: lowercase;
+    }
+
+    .progress-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.81rem;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+
+    .card.winter .progress-fill { background: linear-gradient(90deg, #0284c7, #38bdf8, #bae6fd); }
+    .card.newyear .progress-fill { background: linear-gradient(90deg, #d97706, #fbbf24, #fef08a); }
+    .card.custom .progress-fill { background: linear-gradient(90deg, #7e22ce, #a855f7, #e9d5ff); }
+
+    /* Форма ввода своей даты внутри карточки */
+    .custom-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .custom-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .field-input {
+      width: 100%;
+      min-width: 0;
+      background: rgba(6, 12, 28, 0.72);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      color: var(--text-main);
+      border-radius: 11px;
+      padding: 9px 11px;
+      font-size: 0.86rem;
+      color-scheme: dark;
+      outline: none;
+    }
+
+    .field-input:focus {
+      border-color: #c084fc;
+      box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+    }
+
+    .custom-form-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .custom-form-actions .btn {
+      flex: 1;
+      padding: 9px 10px;
+      font-size: 0.84rem;
+    }
+
+    /* Плавающая кнопка вызова меню пропуска времени */
+    .fab-skip {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 40;
+      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Затемнение фона при открытии меню */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.65);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Окно ввода пароля */
+    .pin-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .pin-modal.open {
+      display: flex;
+    }
+
+    .pin-card {
+      width: 100%;
+      max-width: 340px;
+      background: rgba(11, 20, 42, 0.98);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 22px;
+      padding: 22px 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .pin-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .pin-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .pin-input {
+      width: 100%;
+      background: rgba(6, 12, 28, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: 0.35em;
+      text-align: center;
+      color: #ffffff;
+      outline: none;
+      transition: border-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .pin-input:focus {
+      border-color: var(--winter-accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .pin-input.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.25);
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      75% { transform: translateX(7px); }
+    }
+
+    .pin-error-msg {
+      font-size: 0.82rem;
+      color: #fda4af;
+      min-height: 18px;
+    }
+
+    .pin-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+
+    /* Панель пропуска времени */
+    .skip-drawer {
+      position: fixed;
+      right: 16px;
+      bottom: 70px;
+      width: min(420px, calc(100vw - 32px));
+      max-height: calc(100vh - 92px);
+      overflow-y: auto;
+      background: rgba(11, 20, 42, 0.97);
+      border: 1px solid rgba(148, 197, 255, 0.3);
+      border-radius: 22px;
+      padding: 18px;
+      z-index: 50;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .skip-drawer.open {
+      display: flex;
+    }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .drawer-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .drawer-head-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-lock {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      background: rgba(251, 191, 36, 0.15);
+      color: #fde68a;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-close-x {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      background: rgba(244, 63, 94, 0.2);
+      color: #ffe4e6;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .section-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .btn-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .btn-sm {
+      padding: 8px 9px;
+      font-size: 0.82rem;
+      border-radius: 10px;
+    }
+
+    .btn-sm.active-speed {
+      background: rgba(56, 189, 248, 0.28);
+      border-color: var(--winter-accent);
+      color: #ffffff;
+    }
+
+    .custom-date-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .custom-date-row input {
+      flex: 1;
+      min-width: 0;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      color-scheme: dark;
+    }
+
+    .btn-reset {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #a7f3d0;
+    }
+
+    .btn-exit-bottom {
+      background: rgba(244, 63, 94, 0.22);
+      border-color: rgba(244, 63, 94, 0.55);
+      color: #fecdd3;
+      width: 100%;
+    }
+
+    /* Поздравительное модальное окно */
+    .celebration-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.68);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .celebration-modal.open {
+      display: flex;
+    }
+
+    .celebration-card {
+      width: 100%;
+      max-width: 440px;
+      background: linear-gradient(160deg, rgba(17, 31, 64, 0.97), rgba(9, 17, 38, 0.99));
+      border: 1px solid rgba(251, 191, 36, 0.5);
+      border-radius: 26px;
+      padding: 26px 20px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.75), 0 0 50px rgba(251, 191, 36, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      animation: popIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.86); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .celeb-emoji { font-size: 3.3rem; line-height: 1; }
+
+    .celeb-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(120deg, #ffffff, #fde68a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .celeb-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .celeb-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 520px) {
+      .custom-inputs {
+        grid-template-columns: 1fr;
+      }
+      .timer-grid {
+        gap: 6px;
+      }
+      .time-box {
+        padding: 11px 4px;
+        border-radius: 12px;
+      }
+      .card {
+        padding: 18px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fxCanvas"></canvas>
+
+  <div class="container">
+    <header>
+      <div class="badge-row">
+        <span class="pill" id="clockBadge">🕒 Загрузка времени...</span>
+        <span class="pill" id="modeBadge">🟢 Реальное время</span>
+      </div>
+      <h1>Обратный отсчёт до Праздников</h1>
+      <p class="subtitle">Таймеры идут в реальном времени. Введи свою дату в третьей карточке или нажми в любое место экрана для салюта!</p>
+      <div class="top-actions">
+        <button type="button" class="btn btn-primary" data-toggle-skip>🔒 Пропустить время</button>
+        <button type="button" class="btn" id="soundToggleBtn">🔊 Звук: Вкл</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Карточка Зимы -->
+      <section class="card winter" aria-label="Отсчёт до Зимы">
+        <div class="card-header">
+          <div>
+            <div class="card-title">❄️ До Зимы</div>
+            <div class="card-target" id="winterTargetLabel">Цель: 1 декабря</div>
+          </div>
+          <span class="season-status" id="winterStatus">Ожидание</span>
+        </div>
+
+        <div class="timer-grid">
+          <div class="time-box">
+            <span class="time-val" id="wDays">00</span>
+            <span class="time-lbl" id="wDaysLbl">дней</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="wHours">00</span>
+            <span class="time-lbl" id="wHoursLbl">часов</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="wMins">00</span>
+            <span class="time-lbl" id="wMinsLbl">минут</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="wSecs">00</span>
+            <span class="time-lbl" id="wSecsLbl">секунд</span>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span>Путь до 1 декабря</span>
+            <span id="winterPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="winterBar"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Карточка Нового года -->
+      <section class="card newyear" aria-label="Отсчёт до Нового года">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🎄 До Нового года</div>
+            <div class="card-target" id="nyTargetLabel">Цель: 1 января</div>
+          </div>
+          <span class="season-status" id="nyStatus">Ожидание</span>
+        </div>
+
+        <div class="timer-grid">
+          <div class="time-box">
+            <span class="time-val" id="nyDays">00</span>
+            <span class="time-lbl" id="nyDaysLbl">дней</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="nyHours">00</span>
+            <span class="time-lbl" id="nyHoursLbl">часов</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="nyMins">00</span>
+            <span class="time-lbl" id="nyMinsLbl">минут</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="nySecs">00</span>
+            <span class="time-lbl" id="nySecsLbl">секунд</span>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span>Прогресс года</span>
+            <span id="nyPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="nyBar"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Карточка Своего события -->
+      <section class="card custom" aria-label="Отсчёт до своей даты">
+        <div class="card-header">
+          <div>
+            <div class="card-title" id="customEventTitle">🎯 Моё событие</div>
+            <div class="card-target" id="customEventTargetLabel">Укажи дату и время ниже</div>
+          </div>
+          <span class="season-status" id="customEventStatus">Ждёт дату</span>
+        </div>
+
+        <div class="timer-grid">
+          <div class="time-box">
+            <span class="time-val" id="cDays">00</span>
+            <span class="time-lbl" id="cDaysLbl">дней</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="cHours">00</span>
+            <span class="time-lbl" id="cHoursLbl">часов</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="cMins">00</span>
+            <span class="time-lbl" id="cMinsLbl">минут</span>
+          </div>
+          <div class="time-box">
+            <span class="time-val" id="cSecs">00</span>
+            <span class="time-lbl" id="cSecsLbl">секунд</span>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span>Прогресс ожидания</span>
+            <span id="customEventPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="customEventBar"></div>
+          </div>
+        </div>
+
+        <div class="custom-form">
+          <div class="custom-inputs">
+            <input type="text" class="field-input" id="userEventNameInput" placeholder="Название (напр. Лето)" maxlength="32" />
+            <input type="datetime-local" class="field-input" id="userEventDateInput" />
+          </div>
+          <div class="custom-form-actions">
+            <button type="button" class="btn btn-purple" id="saveUserEventBtn">✨ Запустить отсчёт</button>
+            <button type="button" class="btn" id="jumpUserEvent5Btn" title="Требуется пароль">🔒 За 5 сек</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Плавающая кнопка вызова меню -->
+  <button type="button" class="btn btn-primary fab-skip" data-toggle-skip>🔒 Пропустить время</button>
+
+  <!-- Затемнение для закрытия кликом вне меню -->
+  <div class="backdrop" id="drawerBackdrop"></div>
+
+  <!-- Модальное окно ввода пароля -->
+  <div class="pin-modal" id="pinModal" role="dialog" aria-modal="true" aria-label="Ввод пароля">
+    <div class="pin-card">
+      <div class="pin-title">🔐 Введите пароль</div>
+      <div class="pin-subtitle">Доступ к управлению временем защищён</div>
+      <input
+        type="password"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="8"
+        class="pin-input"
+        id="pinInput"
+        placeholder="••••"
+        autocomplete="off"
+      />
+      <div class="pin-error-msg" id="pinErrorMsg"></div>
+      <div class="pin-actions">
+        <button type="button" class="btn" id="pinCancelBtn">Отмена</button>
+        <button type="button" class="btn btn-primary" id="pinSubmitBtn">Войти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Меню пропуска времени -->
+  <aside class="skip-drawer" id="skipDrawer" aria-label="Меню пропуска времени">
+    <div class="drawer-head">
+      <div class="drawer-title">⏩ Управление временем</div>
+      <div class="drawer-head-btns">
+        <button type="button" class="btn-lock" id="lockDrawerBtn" title="Снова закрыть на пароль">🔒 Блок</button>
+        <button type="button" class="btn-close-x" id="closeDrawerTop" title="Закрыть меню">✕</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Быстрый тест финала</div>
+      <div class="btn-grid">
+        <button type="button" class="btn btn-sm" id="jumpWinter5">❄️ За 5 сек до Зимы</button>
+        <button type="button" class="btn btn-sm" id="jumpNY5">🎄 За 5 сек до Нового года</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Перемотать вперёд</div>
+      <div class="btn-grid-3">
+        <button type="button" class="btn btn-sm" data-step="10000">+10 сек</button>
+        <button type="button" class="btn btn-sm" data-step="3600000">+1 час</button>
+        <button type="button" class="btn btn-sm" data-step="86400000">+1 день</button>
+        <button type="button" class="btn btn-sm" data-step="604800000">+7 дней</button>
+        <button type="button" class="btn btn-sm" data-step="2592000000">+30 дней</button>
+        <button type="button" class="btn btn-sm" id="launchSaluteNow">🎆 Залп салюта</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Скорость хода времени</div>
+      <div class="btn-grid-3" id="speedGroup">
+        <button type="button" class="btn btn-sm" data-speed="0">⏸ Пауза</button>
+        <button type="button" class="btn btn-sm active-speed" data-speed="1">1x</button>
+        <button type="button" class="btn btn-sm" data-speed="60">60x</button>
+        <button type="button" class="btn btn-sm" data-speed="3600">3600x</button>
+        <button type="button" class="btn btn-sm" data-speed="86400">86400x</button>
+        <button type="button" class="btn btn-sm" data-speed="604800">Неделя/с</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Перейти к точной дате (часы)</div>
+      <div class="custom-date-row">
+        <input type="datetime-local" id="customDateInput" />
+        <button type="button" class="btn btn-sm" id="applyCustomDate">Перейти</button>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-sm btn-reset" id="resetRealTimeBtn">🔄 Вернуть реальное время</button>
+    <button type="button" class="btn btn-sm btn-exit-bottom" id="closeDrawerBottom">✕ Закрыть меню</button>
+  </aside>
+
+  <!-- Модальное окно праздника -->
+  <div class="celebration-modal" id="celebrationModal" role="dialog" aria-modal="true">
+    <div class="celebration-card">
+      <div class="celeb-emoji" id="celebEmoji">🎆</div>
+      <h2 class="celeb-title" id="celebTitle">С праздником!</h2>
+      <p class="celeb-text" id="celebText">Таймер достиг нуля!</p>
+      <div class="celeb-actions">
+        <button type="button" class="btn btn-primary" id="moreSaluteBtn">🎆 Ещё залп!</button>
+        <button type="button" class="btn" id="closeCelebBtn">Продолжить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const PASSCODE = "1467";
+      let isUnlocked = false;
+      let pendingProtectedAction = null;
+
+      function declOfNum(n, titles) {
+        const abs = Math.abs(Math.floor(n)) % 100;
+        const n1 = abs % 10;
+        if (abs > 10 && abs < 20) return titles[2];
+        if (n1 > 1 && n1 < 5) return titles[1];
+        if (n1 === 1) return titles[0];
+        return titles[2];
+      }
+
+      const pad2 = (n) => String(Math.max(0, Math.floor(n))).padStart(2, "0");
+
+      // --- Состояние виртуальных часов ---
+      let simTime = Date.now();
+      let lastPerf = performance.now();
+      let speed = 1;
+      let isSimulated = false;
+      let soundEnabled = true;
+
+      const celebratedKeys = new Set();
+
+      function getNowMs() {
+        const nowPerf = performance.now();
+        const dt = Math.min(nowPerf - lastPerf, 250);
+        lastPerf = nowPerf;
+        simTime += dt * speed;
+        return simTime;
+      }
+
+      function setSimulatedTime(targetMs) {
+        simTime = targetMs;
+        lastPerf = performance.now();
+        isSimulated = true;
+        celebratedKeys.clear();
+        updateModeBadge();
+      }
+
+      function resetToRealTime() {
+        simTime = Date.now();
+        lastPerf = performance.now();
+        speed = 1;
+        isSimulated = false;
+        celebratedKeys.clear();
+        updateSpeedButtons();
+        updateModeBadge();
+      }
+
+      // --- Защита паролем (1467) ---
+      const pinModal = document.getElementById("pinModal");
+      const pinInput = document.getElementById("pinInput");
+      const pinErrorMsg = document.getElementById("pinErrorMsg");
+      const jumpUserEvent5Btn = document.getElementById("jumpUserEvent5Btn");
+
+      function updateLockLabels() {
+        const prefix = isUnlocked ? "⏩" : "🔒";
+        toggleButtons.forEach((btn) => {
+          btn.classList.toggle("active-toggle", isDrawerOpen);
+          btn.textContent = isDrawerOpen ? "✕ Закрыть меню" : `${prefix} Пропустить время`;
+        });
+        jumpUserEvent5Btn.textContent = isUnlocked ? "⏩ За 5 сек" : "🔒 За 5 сек";
+      }
+
+      function requireUnlock(callback) {
+        if (isUnlocked) {
+          callback();
+          return;
+        }
+        pendingProtectedAction = callback;
+        pinInput.value = "";
+        pinInput.classList.remove("error");
+        pinErrorMsg.textContent = "";
+        pinModal.classList.add("open");
+        setTimeout(() => pinInput.focus(), 50);
+      }
+
+      function closePinModal() {
+        pinModal.classList.remove("open");
+        pendingProtectedAction = null;
+      }
+
+      function submitPin() {
+        if (pinInput.value.trim() === PASSCODE) {
+          isUnlocked = true;
+          updateLockLabels();
+          const action = pendingProtectedAction;
+          closePinModal();
+          if (typeof action === "function") action();
+        } else {
+          pinErrorMsg.textContent = "Неверный пароль";
+          pinInput.classList.remove("error");
+          void pinInput.offsetWidth;
+          pinInput.classList.add("error");
+          pinInput.value = "";
+          pinInput.focus();
+        }
+      }
+
+      document.getElementById("pinSubmitBtn").addEventListener("click", submitPin);
+      document.getElementById("pinCancelBtn").addEventListener("click", closePinModal);
+      pinModal.addEventListener("click", (e) => {
+        if (e.target === pinModal) closePinModal();
+      });
+      pinInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitPin();
+        }
+      });
+
+      // --- Пользовательское событие ---
+      const STORAGE_KEY = "countdown_custom_event_v1";
+      let userEvent = {
+        name: "Лето",
+        targetMs: new Date(new Date().getFullYear() + (new Date().getMonth() >= 5 ? 1 : 0), 5, 1, 0, 0, 0).getTime(),
+        startMs: Date.now()
+      };
+
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed.targetMs === "number" && !Number.isNaN(parsed.targetMs)) {
+            userEvent = {
+              name: parsed.name || "Моё событие",
+              targetMs: parsed.targetMs,
+              startMs: typeof parsed.startMs === "number" ? parsed.startMs : Date.now()
+            };
+          }
+        }
+      } catch (_) {}
+
+      function toLocalDatetimeInputValue(ms) {
+        const d = new Date(ms);
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      }
+
+      const userEventNameInput = document.getElementById("userEventNameInput");
+      const userEventDateInput = document.getElementById("userEventDateInput");
+      userEventNameInput.value = userEvent.name;
+      userEventDateInput.value = toLocalDatetimeInputValue(userEvent.targetMs);
+
+      document.getElementById("saveUserEventBtn").addEventListener("click", () => {
+        const rawDate = userEventDateInput.value;
+        if (!rawDate) return;
+        const target = new Date(rawDate).getTime();
+        if (Number.isNaN(target)) return;
+
+        const cleanName = userEventNameInput.value.trim() || "Моё событие";
+        userEvent = {
+          name: cleanName,
+          targetMs: target,
+          startMs: getNowMs()
+        };
+        celebratedKeys.delete("custom-event");
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(userEvent));
+        } catch (_) {}
+        launchSaluteShow("custom", 2);
+      });
+
+      jumpUserEvent5Btn.addEventListener("click", () => {
+        requireUnlock(() => {
+          if (!userEvent || !userEvent.targetMs) return;
+          speed = 1;
+          updateSpeedButtons();
+          setSimulatedTime(userEvent.targetMs - 5000);
+        });
+      });
+
+      // --- Элементы DOM ---
+      const clockBadge = document.getElementById("clockBadge");
+      const modeBadge = document.getElementById("modeBadge");
+      const soundToggleBtn = document.getElementById("soundToggleBtn");
+
+      const winterTargetLabel = document.getElementById("winterTargetLabel");
+      const winterStatus = document.getElementById("winterStatus");
+      const wDays = document.getElementById("wDays");
+      const wHours = document.getElementById("wHours");
+      const wMins = document.getElementById("wMins");
+      const wSecs = document.getElementById("wSecs");
+      const wDaysLbl = document.getElementById("wDaysLbl");
+      const wHoursLbl = document.getElementById("wHoursLbl");
+      const wMinsLbl = document.getElementById("wMinsLbl");
+      const wSecsLbl = document.getElementById("wSecsLbl");
+      const winterPercent = document.getElementById("winterPercent");
+      const winterBar = document.getElementById("winterBar");
+
+      const nyTargetLabel = document.getElementById("nyTargetLabel");
+      const nyStatus = document.getElementById("nyStatus");
+      const nyDays = document.getElementById("nyDays");
+      const nyHours = document.getElementById("nyHours");
+      const nyMins = document.getElementById("nyMins");
+      const nySecs = document.getElementById("nySecs");
+      const nyDaysLbl = document.getElementById("nyDaysLbl");
+      const nyHoursLbl = document.getElementById("nyHoursLbl");
+      const nyMinsLbl = document.getElementById("nyMinsLbl");
+      const nySecsLbl = document.getElementById("nySecsLbl");
+      const nyPercent = document.getElementById("nyPercent");
+      const nyBar = document.getElementById("nyBar");
+
+      const customEventTitle = document.getElementById("customEventTitle");
+      const customEventTargetLabel = document.getElementById("customEventTargetLabel");
+      const customEventStatus = document.getElementById("customEventStatus");
+      const cDays = document.getElementById("cDays");
+      const cHours = document.getElementById("cHours");
+      const cMins = document.getElementById("cMins");
+      const cSecs = document.getElementById("cSecs");
+      const cDaysLbl = document.getElementById("cDaysLbl");
+      const cHoursLbl = document.getElementById("cHoursLbl");
+      const cMinsLbl = document.getElementById("cMinsLbl");
+      const cSecsLbl = document.getElementById("cSecsLbl");
+      const customEventPercent = document.getElementById("customEventPercent");
+      const customEventBar = document.getElementById("customEventBar");
+
+      const skipDrawer = document.getElementById("skipDrawer");
+      const drawerBackdrop = document.getElementById("drawerBackdrop");
+      const toggleButtons = document.querySelectorAll("[data-toggle-skip]");
+      const customDateInput = document.getElementById("customDateInput");
+
+      const celebrationModal = document.getElementById("celebrationModal");
+      const celebEmoji = document.getElementById("celebEmoji");
+      const celebTitle = document.getElementById("celebTitle");
+      const celebText = document.getElementById("celebText");
+
+      // --- Меню пропуска времени ---
+      let isDrawerOpen = false;
+
+      function setDrawerOpen(open) {
+        isDrawerOpen = Boolean(open);
+        skipDrawer.classList.toggle("open", isDrawerOpen);
+        drawerBackdrop.classList.toggle("open", isDrawerOpen);
+        updateLockLabels();
+        if (isDrawerOpen && !customDateInput.value) {
+          customDateInput.value = toLocalDatetimeInputValue(simTime);
+        }
+      }
+
+      toggleButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (isDrawerOpen) {
+            setDrawerOpen(false);
+          } else {
+            requireUnlock(() => setDrawerOpen(true));
+          }
+        });
+      });
+
+      document.getElementById("lockDrawerBtn").addEventListener("click", () => {
+        isUnlocked = false;
+        setDrawerOpen(false);
+      });
+
+      document.getElementById("closeDrawerTop").addEventListener("click", () => setDrawerOpen(false));
+      document.getElementById("closeDrawerBottom").addEventListener("click", () => setDrawerOpen(false));
+      drawerBackdrop.addEventListener("click", () => setDrawerOpen(false));
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (pinModal.classList.contains("open")) {
+            closePinModal();
+          } else if (celebrationModal.classList.contains("open")) {
+            celebrationModal.classList.remove("open");
+          } else if (isDrawerOpen) {
+            setDrawerOpen(false);
+          }
+        } else if (
+          (e.key === "t" || e.key === "T" || e.key === "е" || e.key === "Е") &&
+          document.activeElement.tagName !== "INPUT"
+        ) {
+          if (isDrawerOpen) {
+            setDrawerOpen(false);
+          } else {
+            requireUnlock(() => setDrawerOpen(true));
+          }
+        }
+      });
+
+      function updateModeBadge() {
+        if (!isSimulated && speed === 1) {
+          modeBadge.textContent = "🟢 Реальное время";
+          modeBadge.classList.remove("sim-active");
+        } else {
+          modeBadge.textContent = `⏩ Перемотка (${speed}x)`;
+          modeBadge.classList.add("sim-active");
+        }
+      }
+
+      function updateSpeedButtons() {
+        document.querySelectorAll("#speedGroup [data-speed]").forEach((btn) => {
+          const s = Number(btn.getAttribute("data-speed"));
+          btn.classList.toggle("active-speed", s === speed);
+        });
+      }
+
+      document.getElementById("jumpWinter5").addEventListener("click", () => {
+        const now = new Date(getNowMs());
+        const year = now.getFullYear();
+        let target = new Date(year, 11, 1, 0, 0, 0, 0).getTime();
+        if (now.getTime() >= target - 2000) {
+          target = new Date(year + 1, 11, 1, 0, 0, 0, 0).getTime();
+        }
+        speed = 1;
+        updateSpeedButtons();
+        setSimulatedTime(target - 5000);
+        setDrawerOpen(false);
+      });
+
+      document.getElementById("jumpNY5").addEventListener("click", () => {
+        const now = new Date(getNowMs());
+        const target = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0).getTime();
+        speed = 1;
+        updateSpeedButtons();
+        setSimulatedTime(target - 5000);
+        setDrawerOpen(false);
+      });
+
+      document.querySelectorAll("[data-step]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const step = Number(btn.getAttribute("data-step"));
+          setSimulatedTime(getNowMs() + step);
+        });
+      });
+
+      document.querySelectorAll("#speedGroup [data-speed]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          speed = Number(btn.getAttribute("data-speed"));
+          if (speed !== 1) isSimulated = true;
+          updateSpeedButtons();
+          updateModeBadge();
+        });
+      });
+
+      document.getElementById("applyCustomDate").addEventListener("click", () => {
+        if (!customDateInput.value) return;
+        const parsed = new Date(customDateInput.value).getTime();
+        if (!Number.isNaN(parsed)) {
+          setSimulatedTime(parsed);
+          setDrawerOpen(false);
+        }
+      });
+
+      document.getElementById("resetRealTimeBtn").addEventListener("click", () => {
+        resetToRealTime();
+        setDrawerOpen(false);
+      });
+
+      // --- Звук ---
+      let audioCtx = null;
+
+      function playFireworkSound() {
+        if (!soundEnabled) return;
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          if (!audioCtx) audioCtx = new AudioContextClass();
+          if (audioCtx.state === "suspended") audioCtx.resume();
+
+          const now = audioCtx.currentTime;
+          const bufferSize = audioCtx.sampleRate * 0.42;
+          const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.11));
+          }
+          const noise = audioCtx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = "bandpass";
+          filter.frequency.setValueAtTime(650, now);
+
+          const gain = audioCtx.createGain();
+          gain.gain.setValueAtTime(0.24, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.41);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(audioCtx.destination);
+          noise.start(now);
+
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.065);
+            oscGain.gain.setValueAtTime(0.001, now + idx * 0.065);
+            oscGain.gain.linearRampToValueAtTime(0.08, now + idx * 0.065 + 0.03);
+            oscGain.gain.exponentialRampToValueAtTime(0.0008, now + idx * 0.065 + 0.5);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.065);
+            osc.stop(now + idx * 0.065 + 0.55);
+          });
+        } catch (_) {}
+      }
+
+      soundToggleBtn.addEventListener("click", () => {
+        soundEnabled = !soundEnabled;
+        soundToggleBtn.textContent = soundEnabled ? "🔊 Звук: Вкл" : "🔇 Звук: Выкл";
+      });
+
+      // --- Canvas: Снег, салюты и конфетти ---
+      const canvas = document.getElementById("fxCanvas");
+      const ctx = canvas.getContext("2d");
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+
+      const snowflakes = [];
+      const particles = [];
+
+      function resizeCanvas() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      const snowCount = Math.min(90, Math.floor((window.innerWidth * window.innerHeight) / 14000));
+      for (let i = 0; i < snowCount; i++) {
+        snowflakes.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 2.4 + 0.8,
+          vy: Math.random() * 1.1 + 0.45,
+          vx: (Math.random() - 0.5) * 0.45,
+          alpha: Math.random() * 0.55 + 0.25
+        });
+      }
+
+      function spawnFireworkBurst(x, y, theme = "ny") {
+        const palettes = {
+          winter: ["#38bdf8", "#7dd3fc", "#bae6fd", "#ffffff", "#818cf8"],
+          ny: ["#fbbf24", "#f43f5e", "#38bdf8", "#34d399", "#e879f9", "#ffffff"],
+          custom: ["#a855f7", "#e879f9", "#38bdf8", "#fbbf24", "#ffffff"]
+        };
+        const colors = palettes[theme] || palettes.ny;
+        const count = 64;
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.15;
+          const speedVal = Math.random() * 5.2 + 1.8;
+          particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speedVal,
+            vy: Math.sin(angle) * speedVal,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1,
+            decay: Math.random() * 0.016 + 0.011,
+            size: Math.random() * 2.7 + 1.5,
+            isConfetti: i % 3 === 0,
+            rot: Math.random() * Math.PI * 2,
+            vRot: (Math.random() - 0.5) * 0.2
+          });
+        }
+      }
+
+      function launchSaluteShow(theme = "ny", bursts = 5) {
+        playFireworkSound();
+        for (let i = 0; i < bursts; i++) {
+          setTimeout(() => {
+            const rx = width * (0.18 + Math.random() * 0.64);
+            const ry = height * (0.15 + Math.random() * 0.42);
+            spawnFireworkBurst(rx, ry, theme);
+            if (i === 2) playFireworkSound();
+          }, i * 320);
+        }
+      }
+
+      // Интерактивный салют по нажатию на экран
+      document.addEventListener("pointerdown", (e) => {
+        if (e.target.closest("button, input, .skip-drawer, .celebration-card, .pin-card")) return;
+        const themes = ["ny", "winter", "custom"];
+        const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+        spawnFireworkBurst(e.clientX, e.clientY, randomTheme);
+        playFireworkSound();
+      });
+
+      let currentCelebrateTheme = "ny";
+
+      function triggerCelebration(key, theme, emoji, title, text) {
+        if (celebratedKeys.has(key)) return;
+        celebratedKeys.add(key);
+        currentCelebrateTheme = theme;
+        celebEmoji.textContent = emoji;
+        celebTitle.textContent = title;
+        celebText.textContent = text;
+        celebrationModal.classList.add("open");
+        launchSaluteShow(theme, 6);
+      }
+
+      document.getElementById("launchSaluteNow").addEventListener("click", () => launchSaluteShow("ny", 4));
+      document.getElementById("moreSaluteBtn").addEventListener("click", () => launchSaluteShow(currentCelebrateTheme, 5));
+      document.getElementById("closeCelebBtn").addEventListener("click", () => celebrationModal.classList.remove("open"));
+      celebrationModal.addEventListener("click", (e) => {
+        if (e.target === celebrationModal) celebrationModal.classList.remove("open");
+      });
+
+      // --- Обновление таймеров ---
+      const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      const shortDateFormatter = new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      function fillTimerBlocks(diffMs, dEl, hEl, mEl, sEl, dLbl, hLbl, mLbl, sLbl) {
+        const totalSec = Math.floor(Math.max(0, diffMs) / 1000);
+        const d = Math.floor(totalSec / 86400);
+        const h = Math.floor((totalSec % 86400) / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+
+        dEl.textContent = pad2(d);
+        hEl.textContent = pad2(h);
+        mEl.textContent = pad2(m);
+        sEl.textContent = pad2(s);
+
+        dLbl.textContent = declOfNum(d, ["день", "дня", "дней"]);
+        hLbl.textContent = declOfNum(h, ["час", "часа", "часов"]);
+        mLbl.textContent = declOfNum(m, ["минута", "минуты", "минут"]);
+        sLbl.textContent = declOfNum(s, ["секунда", "секунды", "секунд"]);
+      }
+
+      function updateTimers() {
+        const nowMs = getNowMs();
+        const now = new Date(nowMs);
+        const year = now.getFullYear();
+        const month = now.getMonth();
+
+        clockBadge.textContent = "🕒 " + dateFormatter.format(now);
+
+        // 1. Зима (1 декабря)
+        const isWinterSeason = month === 11 || month === 0 || month === 1;
+        const winterTargetYear = month === 11 ? year + 1 : year;
+        const winterTarget = new Date(winterTargetYear, 11, 1, 0, 0, 0, 0).getTime();
+        const winterStart = new Date(winterTargetYear, 2, 1, 0, 0, 0, 0).getTime();
+
+        winterTargetLabel.textContent = `Цель: 1 декабря ${winterTargetYear}`;
+        winterStatus.textContent = isWinterSeason ? "❄️ Зима уже идёт!" : "⏳ Ожидание зимы";
+
+        const dec1ThisYear = new Date(year, 11, 1, 0, 0, 0, 0).getTime();
+        if (nowMs >= dec1ThisYear && nowMs - dec1ThisYear < 8000) {
+          triggerCelebration(
+            `winter-${year}`,
+            "winter",
+            "❄️",
+            `Зима ${year} наступила!`,
+            "Первый день зимы уже здесь! Пусть этот сезон будет снежным и уютным."
+          );
+        }
+
+        fillTimerBlocks(winterTarget - nowMs, wDays, wHours, wMins, wSecs, wDaysLbl, wHoursLbl, wMinsLbl, wSecsLbl);
+
+        let wPct = 100;
+        if (!isWinterSeason) {
+          wPct = Math.min(100, Math.max(0, ((nowMs - winterStart) / (winterTarget - winterStart)) * 100));
+        }
+        winterPercent.textContent = wPct.toFixed(1) + "%";
+        winterBar.style.width = wPct + "%";
+
+        // 2. Новый год (1 января)
+        const nextNYYear = year + 1;
+        const nyTarget = new Date(nextNYYear, 0, 1, 0, 0, 0, 0).getTime();
+        const nyStart = new Date(year, 0, 1, 0, 0, 0, 0).getTime();
+
+        nyTargetLabel.textContent = `Цель: 1 января ${nextNYYear}`;
+        nyStatus.textContent = month === 0 && now.getDate() <= 7 ? "🎉 Праздники!" : `🎄 Встречаем ${nextNYYear}`;
+
+        if (nowMs >= nyStart && nowMs - nyStart < 8000) {
+          triggerCelebration(
+            `ny-${year}`,
+            "ny",
+            "🎄",
+            `С Новым ${year} годом!`,
+            `Поздравляем с наступлением ${year} года! Пусть он принесёт радость, удачу и исполнение желаний!`
+          );
+        }
+
+        fillTimerBlocks(nyTarget - nowMs, nyDays, nyHours, nyMins, nySecs, nyDaysLbl, nyHoursLbl, nyMinsLbl, nySecsLbl);
+
+        const nyPct = Math.min(100, Math.max(0, ((nowMs - nyStart) / (nyTarget - nyStart)) * 100));
+        nyPercent.textContent = nyPct.toFixed(1) + "%";
+        nyBar.style.width = nyPct + "%";
+
+        // 3. Пользовательское событие
+        if (userEvent && userEvent.targetMs) {
+          customEventTitle.textContent = `🎯 ${userEvent.name}`;
+          customEventTargetLabel.textContent = `Цель: ${shortDateFormatter.format(new Date(userEvent.targetMs))}`;
+
+          const cDiff = userEvent.targetMs - nowMs;
+          if (cDiff <= 0) {
+            customEventStatus.textContent = "🎉 Наступило!";
+            customEventPercent.textContent = "100.0%";
+            customEventBar.style.width = "100%";
+            if (Math.abs(cDiff) < 8000) {
+              triggerCelebration(
+                "custom-event",
+                "custom",
+                "🎯",
+                `${userEvent.name} — время пришло!`,
+                `Обратный отсчёт до события «${userEvent.name}» завершён!`
+              );
+            }
+          } else {
+            customEventStatus.textContent = "⏳ Идёт отсчёт";
+            const span = Math.max(1000, userEvent.targetMs - userEvent.startMs);
+            const cPct = Math.min(100, Math.max(0, ((nowMs - userEvent.startMs) / span) * 100));
+            customEventPercent.textContent = cPct.toFixed(1) + "%";
+            customEventBar.style.width = cPct + "%";
+          }
+
+          fillTimerBlocks(cDiff, cDays, cHours, cMins, cSecs, cDaysLbl, cHoursLbl, cMinsLbl, cSecsLbl);
+        }
+      }
+
+      // --- Главный цикл рендера ---
+      let isPageVisible = true;
+      document.addEventListener("visibilitychange", () => {
+        isPageVisible = !document.hidden;
+        if (isPageVisible) lastPerf = performance.now();
+      });
+
+      function renderLoop() {
+        updateTimers();
+
+        if (isPageVisible) {
+          ctx.clearRect(0, 0, width, height);
+
+          for (let i = 0; i < snowflakes.length; i++) {
+            const f = snowflakes[i];
+            f.y += f.vy;
+            f.x += f.vx + Math.sin(f.y * 0.012) * 0.25;
+            if (f.y > height + 6) {
+              f.y = -6;
+              f.x = Math.random() * width;
+            }
+            if (f.x > width + 6) f.x = -6;
+            if (f.x < -6) f.x = width + 6;
+
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(226, 242, 255, ${f.alpha})`;
+            ctx.fill();
+          }
+
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.085;
+            p.vx *= 0.985;
+            p.alpha -= p.decay;
+            p.rot += p.vRot;
+
+            if (p.alpha <= 0) {
+              particles.splice(i, 1);
+              continue;
+            }
+
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            if (p.isConfetti) {
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.fillRect(-p.size * 1.4, -p.size * 0.7, p.size * 2.8, p.size * 1.4);
+            } else {
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+        }
+
+        requestAnimationFrame(renderLoop);
+      }
+
+      requestAnimationFrame(renderLoop);
+    });
+  </script>
+</body>
+</html>
